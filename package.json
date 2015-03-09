@@ -1,0 +1,25 @@
+{
+  "name": "node-mongotailableevents",
+  "version": "0.0.1",
+  "private": false,
+  "description": "Event bus interface based on mongodb tailable cursors",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/delian/node-tailableevents.git"
+  },
+  "bugs": {
+    "url": "https://github.com/delian/node-tailableevents/issues"
+  },
+  "author": "Delian Delchev <delian.delchev@gmail.com> (http://deliantech.blogspot.com/)",
+  "license": "GPLv2",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "debug": "^2.1.2",
+    "events": "^1.0.2",
+    "mongodb": "^1.4.34",
+    "util": "^0.10.3"
+  }
+}
