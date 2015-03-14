@@ -8,27 +8,31 @@ var util = require('util');
 var events = require('events');
 
 function Tevents(config,callback) {
-    if (!(this instanceof  Tevents)) return new Tevents(config,cb);
+    if (!(this instanceof  Tevents)) return new Tevents(config,callback);
 
     var me = this;
     me.event = events.EventEmitter.call(this); // Init the superConstructor
 
     me.config = {
         name: 'tailedEvents',
-        size: 1000000,
+        size: 100000000,
         max: 1000,
         mongoUrl: 'mongodb://127.0.0.1/test',
         mongoOptions: {}
     };
+
     me.col = null;
-    var cb = null;
+    var cb = function() {};
+
     if (typeof config == 'object') util._extend(me.config,config);
     if (typeof config == 'function') cb = config;
+    if (typeof callback == 'object') util._extend(me.config,callback);
+    if (typeof callback == 'function') cb = callback;
 
     mongoClient.connect(me.config.mongoUrl,me.config.mongoOptions,function(err,db) {
         if (err) {
-            if (typeof cb == 'function') cb(err);
-            return;
+            debug('Cannot connect to the mongodb %s',err);
+            return cb(err);
         }
         me.db = db;
 
@@ -40,8 +44,8 @@ function Tevents(config,callback) {
             max: me.config.max
         },function(err,col) {
             if (err) {
-                if (typeof cb == 'function') cb(err);
-                return;
+                debug('Cannot create capped collection %s',err);
+                return cb(err);
             }
             debug('We have created capped collection %s',me.config.name);
             var id = (new Date()).getTime()+".id."+parseInt(Math.random()*1000000);
@@ -52,7 +56,7 @@ function Tevents(config,callback) {
                 var stream = col.find({},{
                     tailable: true,
                     awaitdata: true,
-                    numberOfRetries: -1
+                    numberOfRetries: me.config.numberOfRetries||-1
                 }).stream();
                 debug('We have stream %s', stream);
                 stream.on('data',function(doc) {
@@ -73,18 +77,18 @@ function Tevents(config,callback) {
                 });
             });
 
-            if (typeof cb == 'function') cb(null,me);
+            cb(null,me);
         });
     });
     return me;
 }
 
 util.inherits(Tevents,events.EventEmitter);
-
 Tevents.prototype.emit2 = Tevents.prototype.emit; // Preserve original emit
 
 // Overwrite emit
 Tevents.prototype.emit = function(event,data,cb) {
+    if (!this.col) return debug('Cannot insert %s:%s because we have no collection yet',event,data);
     this.col.insert({ event: event, data: data },function(err,q) {
         debug('We have inserted for event %s data %s',event,data);
         if (typeof cb == 'function') cb(err,q);
