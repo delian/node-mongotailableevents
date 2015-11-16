@@ -19,7 +19,7 @@
   "dependencies": {
     "debug": "^2.1.2",
     "events": "^1.0.2",
-    "mongodb": "^1.4.34",
+    "mongodb": ">=1.4.0",
     "util": "^0.10.3"
   }
 }
